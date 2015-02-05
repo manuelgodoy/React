@@ -1,0 +1,281 @@
+<!-- index.html -->
+<html>
+  <head>
+    <title>Hello React</title>
+    <link rel="stylesheet" type=text/css href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" type=text/css href="static/css/starter-template.css">
+    <link rel="stylesheet" type=text/css href="static/css/styles.css">
+    <script src="http://fb.me/react-0.12.2.js"></script>
+    <script src="http://fb.me/react-with-addons-0.12.2.min.js"></script>
+    <script src="http://fb.me/JSXTransformer-0.12.2.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/showdown/0.3.1/showdown.min.js"></script>
+    <script src="static/bower_components/react-bootstrap/react-bootstrap.min.js"></script>
+
+  </head>
+  <body>
+    <div class="container well" id="content"></div>
+    <script type="text/jsx">
+      // tutorial1.js
+      var Alert = ReactBootstrap.Alert;
+      var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+
+
+      var Comment = React.createClass({
+        render:function() {
+          return (
+            <div className="comment">
+              <h2 className = "commentAuthor">
+                {this.props.author}
+              </h2>
+              {this.props.children}
+            </div>
+          );
+        }
+      });
+
+      var StarInput = React.createClass({
+        propTypes: {
+            value: React.PropTypes.number,
+            onChange: React.PropTypes.func
+        },
+
+        getDefaultProps: function () {
+            return {value: 0, size: 5};
+        },
+
+        getInitialState: function () {
+            return {prospectiveValue: 0};
+        },
+
+        render: function () {
+          return (
+            <div className = "star-rating-input">
+              {[this.clearingItem()].concat(this.starItems())}
+            </div>
+
+          );
+            return React.DOM.div(
+                {className: 'star-rating-input'},
+                [this.clearingItem()].concat(this.starItems())
+            );
+        },
+
+        clearingItem: function () {
+          return React.DOM.div(
+            {className: 'star-rating-clear-container', key: 0},
+
+            React.DOM.a({
+              className: 'star-rating-clear',
+              title: 'Reset value to no stars',
+              href: '',
+              ref: 's0',
+
+              onClick: function (e) {
+                e.preventDefault();
+                this.setState({prospectiveValue: 0});
+                this.props.onChange(0);
+              }.bind(this)
+            }, 'Clear')
+          );
+        },
+
+        starItems: function () {
+            var stars = [],
+                i;
+            for (i = 1; i <= this.props.size; i += 1) {
+                stars.push(this.starItem(i, this.anchorMode(i)));
+            }
+            return stars;
+        },
+
+        starItem: function (value, mode) {
+            return React.DOM.div(
+                {className: 'star-rating-star-container', key: value},
+
+                React.DOM.a({
+                    className: 'star-rating-star ' + mode,
+                    title: value,
+                    href: '',
+                    ref: 's' + value,
+
+                    onMouseEnter: function () {
+                        this.setState({prospectiveValue: value});
+                    }.bind(this),
+
+                    onMouseLeave: function () {
+                        this.setState({prospectiveValue: 0});
+                    }.bind(this),
+
+                    onClick: function (e) {
+                        e.preventDefault();
+                        this.setState({prospectiveValue: 0});
+                        this.props.onChange(value);
+                    }.bind(this)
+                }, value)
+            );
+        },
+
+        anchorMode: function (value) {
+            if (this.state.prospectiveValue > 0) {
+                return (value <= this.state.prospectiveValue ? 'suggested' : 'off');
+            }
+
+            return (value <= this.props.value ? 'on' : 'off');
+        }
+      });
+
+      var Stars = React.createClass({
+        getInitialState: function(){
+          return {value:0};
+        },
+        render: function () {
+          return (
+            <StarInput size={5} value={this.state.value} onChange={ function (value) { this.setState({value: value}); }.bind(this)}>
+            </StarInput>
+          );
+        }
+      });
+
+      var LikeButton = React.createClass({
+        getInitialState: function() {
+          return {liked: false};
+        },
+        handleClick: function(event) {
+          this.setState({liked: !this.state.liked});
+        },
+        render: function() {
+          var text = this.state.liked ? 'like' : 'dislike';
+          return (
+            <div>
+              <button type="button" className="btn btn-primary" onClick={this.handleClick}>
+                {text}
+              </button>
+            </div>
+          );
+        }
+      });
+
+      var CommentList = React.createClass({
+        render: function() {
+          var commentNodes = this.props.data.map(function (comment) {
+            return (
+              <Comment author={comment.author}>
+                {comment.text}
+                <LikeButton bsStyle="primary"/>
+                <Stars/>
+              </Comment>
+
+            );
+
+          });
+          return (
+            <div className = "commentList">
+              {commentNodes}
+
+            </div>
+          )
+        }
+      });
+
+
+      var CommentForm = React.createClass({
+        handleSubmit: function(e) {
+          e.preventDefault();
+          var author = this.refs.author.getDOMNode().value.trim();
+          var text = this.refs.text.getDOMNode().value.trim();
+          if (!text || !author) {
+            return;
+          }
+          this.props.onCommentSubmit({author: author, text: text});
+          this.refs.author.getDOMNode().value = '';
+          this.refs.text.getDOMNode().value = '';
+          return;
+        },
+        render: function() {
+          return (
+            <form className="commentForm" onSubmit = {this.handleSubmit}>
+              <input type="text" className="form-control" placeholder="Your name" ref="author" />
+              <input type="text" className="form-control" placeholder="Say something..." ref="text" />
+              <input type="submit" className="btn btn-default" value="Post" />
+            </form>
+          );
+        }
+      });
+
+      var SendServer = React.createClass({
+        handleClick: function(event) {
+          alert(this.props.data);
+        },
+        render: function() {
+          //var text = this.state.liked ? 'like' : 'dislike';
+          return (
+            <div>
+              <button type="button" className="btn btn-terciary" onClick={this.handleClick}>
+                Aqui
+              </button>
+            </div>
+          );
+        }
+      });
+
+      var CommentBox = React.createClass({
+        loadCommentsFromServer: function() {
+          $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            success: function(data) {
+              this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+        handleCommentSubmit: function(comment){
+          var comments = this.state.data;
+          var newComments = comments.concat([comment]);
+          this.setState({data: newComments});
+          $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            type: 'POST',
+            data: comment,
+            success: function(data) {
+              this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+        getInitialState: function() {
+          return {data: []};
+        },
+        componentDidMount: function() {
+          this.loadCommentsFromServer();
+          setInterval(this.loadCommentsFromServer, this.props.pollInterval);
+        },
+        render: function() {
+          var rating = Stars.state.value
+          return (
+            <div className="commentList">
+              <h1> Comments </h1>
+              <CommentList data = {this.state.data}/>
+              <CommentForm onCommentSubmit = {this.handleCommentSubmit}/>
+              <SendServer data = {rating}/>
+            </div>
+          );
+        }
+      });
+
+      React.render(
+        <CommentBox url = "comments.json" pollInterval={2000}/>,
+        document.getElementById('content')
+      );
+
+
+
+    </script>
+  </body>
+</html>
