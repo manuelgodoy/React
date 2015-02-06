@@ -53,12 +53,11 @@
             <div className = "star-rating-input">
               {[this.clearingItem()].concat(this.starItems())}
             </div>
-
           );
-            return React.DOM.div(
-                {className: 'star-rating-input'},
-                [this.clearingItem()].concat(this.starItems())
-            );
+          return React.DOM.div(
+            {className: 'star-rating-input'},
+            [this.clearingItem()].concat(this.starItems())
+          );
         },
 
         clearingItem: function () {
@@ -129,9 +128,12 @@
         getInitialState: function(){
           return {value:0};
         },
+        handleOnChange: function (value) {
+          this.setState({value: value});
+        },
         render: function () {
           return (
-            <StarInput size={5} value={this.state.value} onChange={ function (value) { this.setState({value: value}); }.bind(this)}>
+            <StarInput size={5} value={this.state.value} onChange={this.handleOnChange}>
             </StarInput>
           );
         }
@@ -163,7 +165,7 @@
               <Comment author={comment.author}>
                 {comment.text}
                 <LikeButton bsStyle="primary"/>
-                <Stars/>
+                <Stars rating = {this.state.ratingValue}/>
               </Comment>
 
             );
@@ -256,14 +258,16 @@
           this.loadCommentsFromServer();
           setInterval(this.loadCommentsFromServer, this.props.pollInterval);
         },
+        handleUserInput: function() {
+          return '';
+        },
         render: function() {
-          var rating = Stars.state.value
           return (
             <div className="commentList">
               <h1> Comments </h1>
               <CommentList data = {this.state.data}/>
               <CommentForm onCommentSubmit = {this.handleCommentSubmit}/>
-              <SendServer data = {rating}/>
+              <SendServer onUserInput={this.handleUserInput}/>
             </div>
           );
         }
